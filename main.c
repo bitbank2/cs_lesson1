@@ -70,11 +70,20 @@ unsigned char *pDest;
    }
 } /* DrawCircle() */
 
+// Invert a pixel in a 1-bpp bitmap
+void invert_pixel(unsigned char *pBitmap, int iPitch, int x, int y)
+{
+unsigned char *pDest;
+
+	pDest = &pBitmap[(y * iPitch) + (x >> 3)];
+	*pDest ^= (0x80 >> (x & 7)); // XOR the selected pixel with 1
+} /* invert_pixel() */
+
 int main(int argc, char* argv[])
 {
 FILE *fhandle;
-//int i, j;
-//int iTime;
+int i, x, y;
+int iTime;
 unsigned char *pBitmap;
 
 // Create a 256 x 256 bitmap (1 bit per pixel)
@@ -82,6 +91,24 @@ unsigned char *pBitmap;
    memset(pBitmap, 0xf0, 256*32); // fill it with white and black stripes
 // Draw a black circle in the center
    DrawCircle(pBitmap, 256>>3, 50, 128, 128, 0);
+
+//
+// Measure the time it takes to invert the bitmap 999 times
+// Do it an odd number of times so that it comes out inverted
+//
+   iTime = MilliTime();
+   for (i=0; i<999; i++)
+   {
+      for(x=0; x<256; x++) // go through every pixel and invert it
+      {
+         for (y=0; y<256; y++)
+         {
+            invert_pixel(pBitmap, 32, x, y);
+         }
+      }
+   }
+   iTime = MilliTime() - iTime;
+   printf("Time to invert the bitmap 999 times = %d milliseconds\n", iTime);
 
 // Prepare the Windows BMP file header
    *(int *)&bmp_header[HEADER_FILESIZE] = sizeof(bmp_header) + 256*32;
